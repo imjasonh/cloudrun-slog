@@ -21,6 +21,6 @@ http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
   slog.InfoContext(r.Context(), "my message",
     "mycount", 42,
     "mystring", "myvalue",
-	)
+  )
 })
 ```
