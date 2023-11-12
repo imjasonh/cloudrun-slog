@@ -6,6 +6,9 @@ import (
 	"os"
 )
 
+// LevelCritical is an extra log level supported by Cloud Logging.
+const LevelCritical = slog.Level(12)
+
 // Set up structured logging
 func init() { slog.SetDefault(slog.New(newHandler())) }
 
@@ -25,7 +28,7 @@ func newHandler() *handler {
 			} else if a.Key == slog.LevelKey {
 				a.Key = "severity"
 				level := a.Value.Any().(slog.Level)
-				if level == slog.Level(12) { // Extra log level supported by Cloud Logging
+				if level == LevelCritical {
 					a.Value = slog.StringValue("CRITICAL")
 				}
 			}
