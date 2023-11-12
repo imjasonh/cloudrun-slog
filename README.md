@@ -20,7 +20,7 @@ Then when you use `slog`, all log messages will be output in JSON format to stan
 http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
   slog.InfoContext(r.Context(), "my message",
     "mycount", 42,
-		"mystring", "myvalue",
+    "mystring", "myvalue",
 	)
 })
 ```
