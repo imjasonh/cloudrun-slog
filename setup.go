@@ -1,4 +1,4 @@
-package crslog
+package gcpslog
 
 import (
 	"context"

@@ -21,7 +21,7 @@ To use this, underscore-import this library, which will configure `slog` to use 
 Then when you use `slog`, all log messages will be output in JSON format to standard error, which is automatically ingested by Cloud Logging.
 
 ```go
-import _ "github.com/imjasonh/cloudrun-slog"
+import _ "github.com/imjasonh/gcpslog"
 
 ...
 
@@ -42,11 +42,11 @@ This logs the message, with the additional structured logging fields in Cloud Lo
 You can also use this to correlate log lines with the request that generated them, by associating the log message with the request's trace context header.
 
 ```go
-import crslog "github.com/imjasonh/cloudrun-slog"
+import "github.com/imjasonh/gcpslog"
 
 ...
 
-http.Handle("/", crslog.WithCloudTraceContext(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+http.Handle("/", gcpslog.WithCloudTraceContext(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
   slog.InfoContext(r.Context(), "my message",
     "mycount", 42,
     "mystring", "myvalue",
@@ -69,8 +69,10 @@ Cloud Logging supports a **CRITICAL** logging level, which doesn't map cleanly t
 To log at this level:
 
 ```go
-slog.Log(ctx, crslog.LevelCritical, "I have a bad feeling about this...")
+slog.Log(ctx, gcpslog.LevelCritical, "I have a bad feeling about this...")
 ```
+
+See `./cmd/example` for a deployable example.
 
 ---
 
