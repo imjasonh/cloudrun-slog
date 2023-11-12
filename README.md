@@ -76,4 +76,4 @@ See `./cmd/example` for a deployable example.
 
 ---
 
-This repo is forked from https://github.com/remko/cloudrun-slog, which originated this idea and impslementation.
+This repo is forked from https://github.com/remko/cloudrun-slog, which originated this idea and implementation.
