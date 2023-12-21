@@ -9,15 +9,12 @@ import (
 // LevelCritical is an extra log level supported by Cloud Logging.
 const LevelCritical = slog.Level(12)
 
-// Set up structured logging
-func init() { slog.SetDefault(slog.New(newHandler())) }
-
 // Handler that outputs JSON understood by the structured log agent.
 // See https://cloud.google.com/logging/docs/agent/logging/configuration#special-fields
-type handler struct{ handler slog.Handler }
+type Handler struct{ handler slog.Handler }
 
-func newHandler() *handler {
-	return &handler{handler: slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+func NewHandler() *Handler {
+	return &Handler{handler: slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 		AddSource: true,
 		Level:     slog.LevelDebug,
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
@@ -37,11 +34,11 @@ func newHandler() *handler {
 	})}
 }
 
-func (h *handler) Enabled(ctx context.Context, level slog.Level) bool {
+func (h *Handler) Enabled(ctx context.Context, level slog.Level) bool {
 	return h.handler.Enabled(ctx, level)
 }
 
-func (h *handler) Handle(ctx context.Context, rec slog.Record) error {
+func (h *Handler) Handle(ctx context.Context, rec slog.Record) error {
 	trace := traceFromContext(ctx)
 	if trace != "" {
 		rec = rec.Clone()
@@ -53,10 +50,10 @@ func (h *handler) Handle(ctx context.Context, rec slog.Record) error {
 	return h.handler.Handle(ctx, rec)
 }
 
-func (h *handler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return &handler{handler: h.handler.WithAttrs(attrs)}
+func (h *Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return &Handler{handler: h.handler.WithAttrs(attrs)}
 }
 
-func (h *handler) WithGroup(name string) slog.Handler {
-	return &handler{handler: h.handler.WithGroup(name)}
+func (h *Handler) WithGroup(name string) slog.Handler {
+	return &Handler{handler: h.handler.WithGroup(name)}
 }
