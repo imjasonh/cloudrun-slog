@@ -3,29 +3,48 @@ package gcpslog
 import (
 	"context"
 	"fmt"
+	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
-
-	"cloud.google.com/go/compute/metadata"
 )
 
-// Middleware that adds the Cloud Trace ID to the context
-// This is used to correlate the structured logs with the Cloud Run
+// WithCloudTraceContext returns an http.handler that adds the GCP Cloud Trace
+// ID to the context. This is used to correlate the structured logs with the
 // request log.
 func WithCloudTraceContext(h http.Handler) http.Handler {
 	// Get the project ID from the environment if specified
 	projectID := os.Getenv("GOOGLE_CLOUD_PROJECT")
 	if projectID == "" {
-		var err error
-		// Get from metadata server
-		// You can avoid this dependency by using environment variables, or by connecting
-		// to the metadata endpoint directly using an `http.Client`
-		// See https://cloud.google.com/compute/docs/metadata/overview
-		projectID, err = metadata.ProjectID()
-		if err != nil {
-			panic(err)
+		// By default use the metadata IP; otherwise use the environment variable
+		// for consistency with https://pkg.go.dev/cloud.google.com/go/compute/metadata#Client.Get
+		host := "169.254.169.254"
+		if h := os.Getenv("GCE_METADATA_HOST"); h != "" {
+			host = h
 		}
+		req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s/computeMetadata/v1/project/project-id", host), nil)
+		if err != nil {
+			slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "err", err)
+			return h
+		}
+		req.Header.Set("Metadata-Flavor", "Google")
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "err", err)
+			return h
+		}
+		if resp.StatusCode != http.StatusOK {
+			slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "code", resp.StatusCode, "status", resp.Status)
+			return h
+		}
+		defer resp.Body.Close()
+		all, err := io.ReadAll(resp.Body)
+		if err != nil {
+			slog.Debug("WithCloudTraceContext: could not get GCP project ID from metadata server", "err", err)
+			return h
+		}
+		projectID = string(all)
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

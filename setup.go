@@ -39,10 +39,9 @@ func (h *Handler) Enabled(ctx context.Context, level slog.Level) bool {
 }
 
 func (h *Handler) Handle(ctx context.Context, rec slog.Record) error {
-	trace := traceFromContext(ctx)
-	if trace != "" {
+	if trace := traceFromContext(ctx); trace != "" {
 		rec = rec.Clone()
-		// Add trace ID	to the record so it is correlated with the Cloud Run request log
+		// Add trace ID	to the record so it is correlated with the request log
 		// See https://cloud.google.com/trace/docs/trace-log-integration
 		rec.Add("logging.googleapis.com/trace", slog.StringValue(trace))
 	}
