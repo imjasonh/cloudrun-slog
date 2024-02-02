@@ -6,10 +6,14 @@ import (
 	"log/slog"
 	"net/http"
 
-	gcpslog "github.com/imjasonh/gcpslog"
+	"github.com/imjasonh/gcpslog"
 )
 
+// Deploy this to Cloud Run to see the logs in the Cloud Logging UI.
+// gcloud run deploy gcpslog --image $(ko build ./cmd/app)
 func main() {
+	slog.SetDefault(slog.New(gcpslog.NewHandler()))
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		slog.InfoContext(r.Context(), "my message",
 			"mycount", 42,
